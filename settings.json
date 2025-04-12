@@ -1,0 +1,47 @@
+{
+    "display": {
+        "pins": {
+            "ir_receiver": "GP28",
+            "rotary_encoder": {
+                "clk": "GP12",
+                "dt": "GP13",
+                "sw": "GP14"
+            },
+            "i2c": {
+                "sda": "GP20",
+                "scl": "GP21"
+            }
+        },
+        "preferences": {
+            "display_enabled": true,
+            "display_address": 60,
+            "pin_pull_up": true,
+            "display_rotation": 0
+        }
+    },
+    "status_leds": {
+        "main_led": {
+            "pin": "GP25",
+            "is_inverted": false
+        }
+    },
+    "hid_mapper": {
+        "timing": {
+            "feedback_duration": 0.3,
+            "led_blink_count": 2,
+            "debounce_time": 0.05,
+            "long_press_delay": 1.5,
+            "ir_timeout": 20000,
+            "save_timeout": 30,
+            "reboot_delay": 5,
+            "temp_message_duration": 2.0
+        },
+        "logging": {
+            "default_log_level": "INFO"
+        }
+    },
+    "ir_receiver": {
+        "maxlen": 250,
+        "idle_state": true
+    }
+} 
