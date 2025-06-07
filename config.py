@@ -1,14 +1,6 @@
-"""
-Configuration module for Picomote
+"""Configuration module for Picomote IR"""
 
-Responsibilities:
-- Centralized configuration management (Settings class)
-- Logging system (Logger class)
-- Definition of key groups (MEDIA_KEYS, KEYBOARD_KEYS)
-- Mapping from display names to HID keycodes (COMMAND_NAME_TO_KEYCODE)
-"""
-
-__version__ = "0.2.1"
+__version__ = "0.2.10"
 
 import json
 import board
@@ -20,35 +12,24 @@ try:
     from adafruit_hid.keycode import Keycode
     HAS_KEYCODE = True
 except ImportError:
-    print("[ERROR] Config: adafruit_hid library not found! Keycode definitions unavailable.")
     HAS_KEYCODE = False
     class Keycode:
-        # Dummy class if import fails
         pass
 
-# Support for media keys (Consumer Control)
 try:
     from adafruit_hid.consumer_control_code import ConsumerControlCode
     HAS_CONSUMER = True
 except ImportError:
-    print("[ERROR] Config: adafruit_hid consumer_control_code not found! Media keys unavailable.")
     HAS_CONSUMER = False
     class ConsumerControlCode:
-        # Dummy class if import fails
         pass
 
 try:
     import adafruit_irremote
     HAS_IRREMOTE = True
 except ImportError:
-    print("[ERROR] Config: adafruit_irremote library not found! IR functionality limited.")
     HAS_IRREMOTE = False
 
-# --- HID Key Definitions ---
-
-# Define keys in logical groups
-
-# Group 1: Media Keys
 MEDIA_KEYS = []
 if HAS_CONSUMER:
     MEDIA_KEYS = [
@@ -67,11 +48,10 @@ if HAS_CONSUMER:
         ("Bright-", ConsumerControlCode.BRIGHTNESS_DECREMENT, True),
     ]
 
-# Group 2: Keyboard Keys (Letters, Numbers, Symbols, Control, etc.)
 KEYBOARD_KEYS = []
 if HAS_KEYCODE:
     KEYBOARD_KEYS = [
-        # Letters (Lowercase Only)
+        # Letters
         ("a", Keycode.A), ("b", Keycode.B), ("c", Keycode.C), ("d", Keycode.D), ("e", Keycode.E),
         ("f", Keycode.F), ("g", Keycode.G), ("h", Keycode.H), ("i", Keycode.I), ("j", Keycode.J),
         ("k", Keycode.K), ("l", Keycode.L), ("m", Keycode.M), ("n", Keycode.N), ("o", Keycode.O),
@@ -82,12 +62,12 @@ if HAS_KEYCODE:
         ("0", Keycode.ZERO), ("1", Keycode.ONE), ("2", Keycode.TWO), ("3", Keycode.THREE),
         ("4", Keycode.FOUR), ("5", Keycode.FIVE), ("6", Keycode.SIX), ("7", Keycode.SEVEN),
         ("8", Keycode.EIGHT), ("9", Keycode.NINE),
-        # Common Symbols (Primary)
+        # Common Symbols
         (" ", Keycode.SPACE), ("-", Keycode.MINUS), ("=", Keycode.EQUALS),
         ("[", Keycode.LEFT_BRACKET), ("]", Keycode.RIGHT_BRACKET), ("\\", Keycode.BACKSLASH),
         (";", Keycode.SEMICOLON), ("'", Keycode.QUOTE), (",", Keycode.COMMA),
         (".", Keycode.PERIOD), ("/", Keycode.FORWARD_SLASH), ("`", Keycode.GRAVE_ACCENT),
-        # Common Symbols (Shifted)
+        # Shifted Symbols
         ("~", (Keycode.SHIFT, Keycode.GRAVE_ACCENT)), ("!", (Keycode.SHIFT, Keycode.ONE)),
         ("@", (Keycode.SHIFT, Keycode.TWO)), ("#", (Keycode.SHIFT, Keycode.THREE)),
         ("$", (Keycode.SHIFT, Keycode.FOUR)), ("%", (Keycode.SHIFT, Keycode.FIVE)),
@@ -106,9 +86,9 @@ if HAS_KEYCODE:
         # Control Keys
         ("Enter", Keycode.ENTER), ("Esc", Keycode.ESCAPE), ("Bksp", Keycode.BACKSPACE),
         ("Tab", Keycode.TAB), ("CapsLk", Keycode.CAPS_LOCK),
-        # Modifiers (Note: Sending these alone often does nothing, used with other keys)
+        # Modifiers
         ("Ctrl", Keycode.LEFT_CONTROL), ("Shift", Keycode.LEFT_SHIFT),
-        ("Alt", Keycode.LEFT_ALT), ("GUI", Keycode.LEFT_GUI), # GUI = Windows/Command key
+        ("Alt", Keycode.LEFT_ALT), ("GUI", Keycode.LEFT_GUI),
         # Function Keys
         ("F1", Keycode.F1), ("F2", Keycode.F2), ("F3", Keycode.F3), ("F4", Keycode.F4),
         ("F5", Keycode.F5), ("F6", Keycode.F6), ("F7", Keycode.F7), ("F8", Keycode.F8),
@@ -118,7 +98,7 @@ if HAS_KEYCODE:
         ("End", Keycode.END), ("PgUp", Keycode.PAGE_UP), ("PgDn", Keycode.PAGE_DOWN),
         ("Up", Keycode.UP_ARROW), ("Down", Keycode.DOWN_ARROW),
         ("Left", Keycode.LEFT_ARROW), ("Right", Keycode.RIGHT_ARROW),
-        # Keypad Keys (Example)
+        # Keypad Keys
         ("NumLk", Keycode.KEYPAD_NUMLOCK),
         ("KP /", Keycode.KEYPAD_FORWARD_SLASH), ("KP *", Keycode.KEYPAD_ASTERISK),
         ("KP -", Keycode.KEYPAD_MINUS), ("KP +", Keycode.KEYPAD_PLUS),
@@ -129,34 +109,27 @@ if HAS_KEYCODE:
         ("KP 0", Keycode.KEYPAD_ZERO), ("KP .", Keycode.KEYPAD_PERIOD),
     ]
 
-# Fallback sequence if libraries are missing (can be simplified too if needed)
 FALLBACK_KEY_SEQUENCE = [
     ("Play/Pause", None), ("Stop", None), ("Next", None), ("Prev", None), 
-    ("Vol+", None), ("Vol-", None), ("Mute", None), # Media Fallback
-    ("a", None), ("b", None), ("c", None), # Keyboard Fallback
+    ("Vol+", None), ("Vol-", None), ("Mute", None),
+    ("a", None), ("b", None), ("c", None),
     ("Enter", None), ("Space", None), ("Esc", None),
     ("Up", None), ("Down", None), ("Left", None), ("Right", None),
 ]
 
-# --- Combined List for Mapping --- 
-# Create a single list of all available keys for the COMMAND_NAME_TO_KEYCODE map
 ALL_KEYS_FOR_MAPPING = MEDIA_KEYS + KEYBOARD_KEYS
 if not HAS_KEYCODE and not HAS_CONSUMER:
     ALL_KEYS_FOR_MAPPING = FALLBACK_KEY_SEQUENCE
-    logger.warning("Config", "Using fallback key sequence for COMMAND_NAME_TO_KEYCODE map")
 
-# Mapping from display name to keycode(s) for quick lookup
-# Needs to contain ALL keys from both groups for IR mapping lookup
 COMMAND_NAME_TO_KEYCODE = {}
-for item in ALL_KEYS_FOR_MAPPING: # Use the combined list here
-    if len(item) == 2: # Standard (name, code) format 
+for item in ALL_KEYS_FOR_MAPPING:
+    if len(item) == 2:
         name, code = item[0], item[1]
         COMMAND_NAME_TO_KEYCODE[name.lower()] = code 
-    elif len(item) == 3:  # Media key (name, code, is_media_key) format
+    elif len(item) == 3:
         name, code, is_media_key = item
         COMMAND_NAME_TO_KEYCODE[name.lower()] = (name, code, is_media_key)
 
-# --- Logger Class ---
 class Colors:
     HEADER = '\033[95m'
     OKBLUE = '\033[94m'
@@ -167,7 +140,6 @@ class Colors:
     ENDC = '\033[0m'
 
 class Logger:
-    """Simple logging system with levels and colors."""
     def __init__(self, enabled=True, level="INFO"):
         self.enabled = enabled
         self.levels = {
@@ -220,16 +192,12 @@ class Logger:
             kwargs["error"] = str(error)
         self._log("ERROR", module, message, **kwargs)
 
-# Global logger instance
-logger = Logger(enabled=True, level="DEBUG") # Set default level to DEBUG
+logger = Logger(enabled=True, level="DEBUG")
 
-# --- Settings Class ---
 class Settings:
-    """Configuration manager for loading and accessing settings from settings.json."""
     def __init__(self):
         self.settings = {}
-        # Default settings (can be overridden by settings.json)
-        self.defaults = { # Default values are loaded first
+        self.defaults = {
             "display": {
                 "pins": {
                     "ir_receiver": "GP15",
@@ -255,9 +223,9 @@ class Settings:
                     "ir_timeout": 20000,
                     "save_timeout": 30,
                     "reboot_delay": 5,
-                    "temp_message_duration": 2.0 # Default temp message duration
+                    "temp_message_duration": 2.0
                 },
-                "logging": { # Default logging settings
+                "logging": {
                     "default_log_level": "INFO"
                 }
             },
@@ -269,25 +237,18 @@ class Settings:
         self._load_settings()
 
     def _load_settings(self):
-        """Loads settings from settings.json, merging with defaults."""
         try:
             if "settings.json" in os.listdir("/"):
                 with open("/settings.json", "r") as f:
                     loaded_settings = json.load(f)
-                # Use a temporary logger instance BEFORE full config is loaded
-                # print("[INFO] Config: settings.json loaded successfully.") # Simple print before logger is ready
-                # Merge loaded settings into defaults (deep merge might be better later)
                 self._merge_dicts(self.defaults, loaded_settings)
                 self.settings = self.defaults
             else:
-                # print("[WARNING] Config: settings.json not found. Using default values.")
                 self.settings = self.defaults
-        except Exception as e:
-            # print(f"[ERROR] Config: Error loading settings.json: {e}. Using defaults.")
+        except:
             self.settings = self.defaults
 
     def _merge_dicts(self, base, updates):
-        """Recursively merges dict `updates` into `base`."""
         for key, value in updates.items():
             if isinstance(value, dict) and key in base and isinstance(base[key], dict):
                 self._merge_dicts(base[key], value)
@@ -295,26 +256,18 @@ class Settings:
                 base[key] = value
 
     def get(self, key, default=None):
-        """Access a top-level setting."""
         return self.settings.get(key, default)
 
     def get_section(self, section_key, default=None):
-        """Access a specific section (dictionary) of the settings."""
         return self.settings.get(section_key, default if default is not None else {})
 
     def get_value(self, section_key, value_key, default=None):
-        """Access a specific value within a section."""
         section = self.get_section(section_key)
         return section.get(value_key, default)
 
-# Global settings instance
 settings = Settings()
 
-# Initialize Logger AFTER settings are loaded
 log_level = settings.get_value("hid_mapper", "logging", {}).get("default_log_level", "INFO").upper()
 logger = Logger(enabled=True, level=log_level)
 
-logger.info("Config", f"Logger initialized with level: {log_level}")
 logger.info("Config", "Configuration loaded.")
-# logger.debug("Config", f"Loaded Settings: {settings.settings}")
-# logger.debug("Config", f"Keycode Map Size: {len(COMMAND_NAME_TO_KEYCODE)}")

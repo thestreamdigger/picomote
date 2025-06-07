@@ -3,8 +3,8 @@
         "pins": {
             "ir_receiver": "GP28",
             "rotary_encoder": {
-                "clk": "GP12",
-                "dt": "GP13",
+                "clk": "GP13",
+                "dt": "GP12",
                 "sw": "GP14"
             },
             "i2c": {
@@ -16,7 +16,15 @@
             "display_enabled": true,
             "display_address": 60,
             "pin_pull_up": true,
-            "display_rotation": 0
+            "display_rotation": 0,
+            "idle_mode_enabled": true,
+            "idle_timeout": 10,
+            "idle_display_enabled": true,
+            "idle_display_inverted": true,
+            "deep_idle_enabled": true,
+            "deep_idle_timeout": 20,
+            "deep_idle_display_enabled": true,
+            "start_in_deep_idle": true
         }
     },
     "status_leds": {
@@ -27,7 +35,7 @@
     },
     "hid_mapper": {
         "timing": {
-            "feedback_duration": 0.3,
+            "feedback_duration": 0.2,
             "led_blink_count": 2,
             "debounce_time": 0.05,
             "long_press_delay": 1.5,
@@ -41,7 +49,7 @@
         }
     },
     "ir_receiver": {
-        "maxlen": 250,
+        "maxlen": 200,
         "idle_state": true
     }
 } 

@@ -1,113 +1,148 @@
-# Picomote
+# Picomote IR v0.2.10
 
 [![CircuitPython 7.x+](https://img.shields.io/badge/CircuitPython-7.x%2B-purple.svg)](https://circuitpython.org)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
-[![Version](https://img.shields.io/badge/version-v0.2.1-lightgrey.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-v0.2.10-brightgreen.svg)](CHANGELOG.md)
+[![RP2040](https://img.shields.io/badge/Raspberry%20Pico-RP2040-c51a4a.svg)](https://www.raspberrypi.com/products/rp2040/)
 
-A CircuitPython device for the RP2040 that allows mapping IR codes to HID keyboard keys.
+**IR remote to USB HID keyboard mapper for Raspberry Pi RP2040/RP2350**
 
-## Overview
-
-This project, **Picomote**, transforms an RP2040 microcontroller (like the WeAct RP2040 or Raspberry Pi Pico) into a device that receives infrared (IR) remote control signals and translates them into USB HID keyboard keystrokes. It's ideal for controlling presentations, media players, or any application on a computer using existing IR remote controls.
+Maps IR remote control signals to USB keyboard commands using CircuitPython. Features a simple OLED interface for configuring and recording IR signals directly on the device. Useful for controlling media streamers, audio software, video players, and other computer applications with any standard IR remote.
 
 ## Features
 
-- OLED display interface for selection and status
-- IR signal encoding and decoding
-- Learning mode to easily add new mappings
-- Sends USB HID keys to control computers
-- Persistence of mappings in files
-- Feedback LED for operations
-- Rotary encoder navigation
-- Key grouping system with dedicated Media and Keyboard groups
-- Quick toggle between key groups with encoder button
+- **Universal IR support** - Works with most IR remotes (NEC, Sony, Samsung, RC5/RC6)
+- **Two operation modes** - Media keys and full keyboard mapping
+- **OLED display** with rotary encoder navigation
+- **Learning mode** - Map any IR button to any keyboard key
+- **Persistent storage** - Mappings saved between reboots
+- **Visual feedback** - Status LED and display notifications
 
-## Required Hardware
+## Hardware Requirements
 
-- RP2040 Microcontroller (Raspberry Pi Pico or WeAct RP2040)
-- IR Receiver (VS1838B or equivalent)
-- I2C SSD1306 OLED Display (128x64)
-- Rotary encoder with button
-- LED for visual feedback
-- Pull-up resistors as needed
-
-## Default Pinout
-
-| Component      | RP2040 Pin | Description             |
-|----------------|------------|-------------------------|
-| IR Receiver    | GP15       | IR signal input         |
-| OLED SDA       | GP2        | I2C data for display    |
-| OLED SCL       | GP3        | I2C clock for display   |
-| Encoder CLK    | GP12       | Encoder clock           |
-| Encoder DT     | GP13       | Encoder data            |
-| Encoder SW     | GP14       | Encoder button          |
-| Status LED     | GP25       | Onboard or external LED |
+| Component | Pin | Description |
+|-----------|-----|-------------|
+| IR Receiver | GP28 | VS1838B or equivalent 38kHz receiver |
+| OLED Display | GP20/GP21 | I2C SSD1306 128x64 pixels |
+| Rotary Encoder | GP12/GP13/GP14 | With integrated push button |
+| Status LED | GP25 | Visual feedback (optional) |
 
 ## Installation
 
-1. Install CircuitPython 7.x or higher on your RP2040 device
-2. Copy the following files to the device:
-   - `boot.py`
-   - `code.py`
-   - `config.py`
-   - `device.py`
-   - `settings.json`
-3. Copy the required libraries to the `/lib` folder:
-   - adafruit_hid/
-   - adafruit_irremote.mpy
-   - adafruit_display_text/
-   - adafruit_displayio_ssd1306.mpy
+1. **Install CircuitPython 7.x+** on your RP2040/RP2350
+2. **Copy libraries** to `/lib/` folder:
+   ```
+   adafruit_hid/
+   adafruit_irremote.mpy
+   adafruit_display_text/
+   adafruit_displayio_ssd1306.mpy
+   ```
+3. **Copy project files** to root directory:
+   ```
+   boot.py
+   code.py
+   config.py
+   device.py
+   ir_manager.py
+   display_cache.py
+   settings.json
+   ```
 
 ## Usage
 
-1. Connect the device to a computer via USB
-2. The OLED display will show the key selection interface
-3. Use the rotary encoder to navigate between available keys
-4. Short press the encoder button to toggle between Media and Keyboard key groups
-5. To map a new IR code:
-   - Select the desired key with the encoder
-   - Press and hold the encoder button until learning mode is entered
-   - Press the button on the remote control you want to map
-   - The device will save the mapping automatically
-6. To use the mappings:
-   - Point the remote control at the IR receiver
-   - Press the mapped button on the remote control
-   - The device will send the corresponding HID key to the computer
+### Navigation
+- **Rotate encoder** - Browse available keys
+- **Short press** - Switch between Media and Keyboard modes
+- **Long press** - Enter learning mode for current key
 
-## Available Media Keys
+### Learning New Mappings
+1. Navigate to the key you want to map
+2. Long press the encoder to enter learning mode
+3. Point your IR remote at the device
+4. Press the remote button you want to map
+5. Mapping is automatically saved
 
-The Media key group includes:
-- Play/Pause, Stop, Next, Previous track
-- Volume control (Vol+, Vol-, Mute)
-- Media transport (Record, Fast Forward, Rewind, Eject)
-- Screen brightness control (Bright+, Bright-)
+### Display Modes
 
-The Keyboard group includes letters, numbers, symbols, function keys and more.
+**Media Mode** - Common media keys:
+```
+Media: 3/13
+< Prev  PLAY  Next >
+```
 
-## Mappings
+**Keyboard Mode** - Full keyboard:
+```
+Keyboard: 15/104
+< n  O  p >
+```
 
-Mappings are saved in the `/mappings/` folder as `.ir` files containing the hexadecimal codes of the IR signals. The filenames correspond to the mapped HID keys.
+**Learning Mode**:
+```
+LEARNING: play/pause
+Point remote
+Time: 18s
+```
 
-## Customization
+## Configuration
 
-Adjust pins and settings by editing the `settings.json` file:
+Edit `settings.json` to customize pin assignments and behavior:
 
-- `pins`: Pin configuration for all components
-- `preferences`: Preferences like display rotation, display enable, and I2C address.
-- `timing`: Time adjustments for debounce, feedback, timeouts (`temp_message_duration` controls default temporary message display time).
-- `logging`: Set the default logging level (`default_log_level` e.g., "INFO", "DEBUG").
+```json
+{
+    "display": {
+        "pins": {
+            "ir_receiver": "GP28",
+            "rotary_encoder": {
+                "clk": "GP13", "dt": "GP12", "sw": "GP14"
+            },
+            "i2c": {"sda": "GP20", "scl": "GP21"}
+        },
+        "preferences": {
+            "display_enabled": true,
+            "idle_timeout": 5,
+            "deep_idle_timeout": 15
+        }
+    },
+    "status_leds": {
+        "main_led": {"pin": "GP25", "is_inverted": false}
+    }
+}
+```
+
+## File Structure
+
+```
+/
+├── boot.py              # Boot configuration
+├── code.py              # Main entry point
+├── config.py            # Configuration constants
+├── device.py            # Main device logic
+├── ir_manager.py        # IR processing
+├── display_cache.py     # Display management
+├── settings.json        # User configuration
+└── mappings/            # Saved IR mappings
+```
 
 ## Troubleshooting
 
-- **LED blinking rapidly multiple times**: Indicates an error
-- **Display showing "NO KEYS/LIB ERR"**: Missing or corrupted libraries
-- **IR not detected**: Check the IR receiver connection and pin configuration
+**IR not detected:**
+- Check IR receiver wiring (default GP28)
+- Ensure remote is working
+- Try closer distance (1-3 meters)
+
+**Display issues:**
+- Verify I2C connections (SDA/SCL)
+- Check display address (default 0x3C)
+
+**USB not recognized:**
+- Restart device
+- Check USB cable and connection
 
 ## License
 
-This project is free software; you can redistribute it and/or modify it under the terms of the license of your choice.
+GNU General Public License v3.0 - see [LICENSE](LICENSE) file for details.
 
-## Acknowledgements
+## Acknowledgments
 
-- CircuitPython and Adafruit team for the excellent libraries
-- The RP2040 community for resources and support 
+- CircuitPython and Adafruit teams for excellent libraries
+- RP2040/RP2350 community for support and resources 
