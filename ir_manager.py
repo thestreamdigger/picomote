@@ -1,4 +1,7 @@
-"""IR signal processing manager for Picomote IR"""
+"""IR signal processing manager for Picomote IR
+
+Handles IR signal reception, decoding, and mapping with efficient caching.
+"""
 
 import time
 from config import HAS_IRREMOTE
@@ -7,29 +10,35 @@ if HAS_IRREMOTE:
     import adafruit_irremote
 
 class IRManager:
-    """Manages IR signal processing with optimized debouncing and caching"""
+    """Manages IR signal processing with debouncing and mapping cache"""
     
     def __init__(self, pulsein, decoder=None, cache_size=10):
+        """
+        Initialize IR manager with pulse input and decoder
+        
+        Args:
+            pulsein: PulseIn object for IR signal reception
+            decoder: IR decoder (default: GenericDecode if available)
+            cache_size: Maximum number of cached mappings
+        """
         self.pulsein = pulsein
         self.decoder = decoder or (adafruit_irremote.GenericDecode() if HAS_IRREMOTE else None)
         self.last_code_time = 0
         self.last_code = None
         self.debounce_time = 0.1  # 100ms debounce for repeat signals
         
-        # PHASE 3: Mapping cache for frequently used codes
         self.mapping_cache = {}
         self.cache_usage_count = {}
         self.cache_access_time = {}
         self.max_cache_size = cache_size
         
-        # PHASE 3: Performance statistics
         self.cache_hits = 0
         self.cache_misses = 0
         self.total_lookups = 0
     
     def get_ir_code(self):
         """
-        Process IR signals and return decoded code with built-in debouncing.
+        Process IR signals and return decoded code with built-in debouncing
         
         Returns:
             int or None: IR code if valid signal detected, None otherwise
@@ -85,11 +94,11 @@ class IRManager:
     
     def lookup_mapping(self, ir_code, full_mappings):
         """
-        Fast lookup of IR code mapping with intelligent caching.
+        Fast lookup of IR code mapping with intelligent caching
         
         Args:
-            ir_code (int): IR code to lookup
-            full_mappings (dict): Complete mappings dictionary
+            ir_code: IR code to lookup
+            full_mappings: Complete mappings dictionary
             
         Returns:
             str or None: Mapped key name if found, None otherwise
@@ -142,17 +151,15 @@ class IRManager:
     
     def preload_frequent_mappings(self, mappings, max_preload=5):
         """
-        Preload frequently used mappings into cache.
+        Preload frequently used mappings into cache
         
         Args:
-            mappings (dict): Full mappings dictionary
-            max_preload (int): Maximum number of mappings to preload
+            mappings: Full mappings dictionary
+            max_preload: Maximum number of mappings to preload
         """
         if not mappings:
             return
             
-        # For now, just preload the first few mappings
-        # In a real implementation, this could be based on usage statistics
         preload_count = min(max_preload, len(mappings), self.max_cache_size)
         
         for i, (ir_code, key_name) in enumerate(mappings.items()):
@@ -165,7 +172,7 @@ class IRManager:
     
     def get_cache_stats(self):
         """
-        Get cache performance statistics.
+        Get cache performance statistics
         
         Returns:
             dict: Cache statistics

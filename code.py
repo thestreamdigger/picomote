@@ -1,4 +1,11 @@
-"""Main execution file for Picomote IR"""
+"""Main execution file for Picomote IR
+
+Entry point for the application that:
+1. Initializes the HIDMapperDevice instance
+2. Runs the main event loop
+3. Handles errors and provides visual feedback
+4. Performs automatic recovery via reboot when needed
+"""
 
 import time
 import supervisor

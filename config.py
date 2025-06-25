@@ -1,6 +1,13 @@
-"""Configuration module for Picomote IR"""
+"""Configuration module for Picomote IR
 
-__version__ = "0.2.10"
+Provides:
+1. Version information and feature detection
+2. Key mapping definitions for media and keyboard controls
+3. Logging system with colored console output
+4. Settings management with defaults and JSON file loading
+"""
+
+__version__ = "1.0.0"
 
 import json
 import board

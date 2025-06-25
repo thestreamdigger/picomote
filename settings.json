@@ -35,14 +35,14 @@
     },
     "hid_mapper": {
         "timing": {
-            "feedback_duration": 0.2,
-            "led_blink_count": 2,
+            "feedback_duration": 0.05,
+            "led_blink_count": 1,
             "debounce_time": 0.05,
             "long_press_delay": 1.5,
             "ir_timeout": 20000,
             "save_timeout": 30,
             "reboot_delay": 5,
-            "temp_message_duration": 2.0
+            "temp_message_duration": 1.0
         },
         "logging": {
             "default_log_level": "INFO"

@@ -1,4 +1,11 @@
-"""Boot script for Picomote IR"""
+"""Boot script for Picomote IR
+
+Configures the device during startup:
+1. Sets up USB HID devices (keyboard and consumer control)
+2. Disables USB mass storage
+3. Ensures filesystem is writable
+4. Creates mappings directory if needed
+"""
 
 import board
 import storage

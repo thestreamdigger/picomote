@@ -1,4 +1,8 @@
-"""Display caching system for Picomote IR"""
+"""Display caching system for Picomote IR
+
+Provides efficient caching for display elements to reduce memory usage
+and improve performance when updating the OLED display.
+"""
 
 import displayio
 import terminalio
@@ -13,6 +17,12 @@ class DisplayCache:
     """Manages display group caching to reduce recreation overhead"""
     
     def __init__(self, max_cache_size=5):
+        """
+        Initialize display cache
+        
+        Args:
+            max_cache_size: Maximum number of cached display groups
+        """
         self.cached_groups = {}
         self.last_values = {}
         self.max_cache_size = max_cache_size
@@ -21,11 +31,11 @@ class DisplayCache:
     
     def get_or_create(self, cache_key, builder_func, *args, **kwargs):
         """
-        Get cached display group or create new one using builder function.
+        Get cached display group or create new one using builder function
         
         Args:
-            cache_key (str): Unique identifier for this display state
-            builder_func (callable): Function to build the display group
+            cache_key: Unique identifier for this display state
+            builder_func: Function to build the display group
             *args, **kwargs: Arguments passed to builder_func
             
         Returns:
@@ -54,10 +64,10 @@ class DisplayCache:
     
     def invalidate(self, cache_key=None):
         """
-        Invalidate cache entries.
+        Invalidate cache entries
         
         Args:
-            cache_key (str, optional): Specific key to invalidate. If None, clears all.
+            cache_key: Specific key to invalidate. If None, clears all
         """
         if cache_key is None:
             self.cached_groups.clear()
@@ -69,10 +79,10 @@ class DisplayCache:
     
     def has_changed(self, cache_key, current_value):
         """
-        Check if a value has changed since last cache.
+        Check if a value has changed since last cache
         
         Args:
-            cache_key (str): Cache key to check
+            cache_key: Cache key to check
             current_value: Current value to compare
             
         Returns:
@@ -90,7 +100,7 @@ class DisplayCache:
     
     def get_stats(self):
         """
-        Get cache performance statistics.
+        Get cache performance statistics
         
         Returns:
             dict: Cache statistics
@@ -108,12 +118,12 @@ class DisplayCache:
     
     def create_text_group(self, lines, colors=None, positions=None, font=None):
         """
-        Helper method to create a text-based display group.
+        Helper method to create a text-based display group
         
         Args:
-            lines (list): List of text strings
-            colors (list, optional): List of colors for each line
-            positions (list, optional): List of (x, y) positions for each line
+            lines: List of text strings
+            colors: List of colors for each line
+            positions: List of (x, y) positions for each line
             font: Font to use (defaults to terminalio.FONT)
             
         Returns:

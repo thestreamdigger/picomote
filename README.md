@@ -1,8 +1,8 @@
-# Picomote IR v0.2.10
+# Picomote IR v1.0.0
 
 [![CircuitPython 7.x+](https://img.shields.io/badge/CircuitPython-7.x%2B-purple.svg)](https://circuitpython.org)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
-[![Version](https://img.shields.io/badge/version-v0.2.10-brightgreen.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-v1.0.0-brightgreen.svg)](CHANGELOG.md)
 [![RP2040](https://img.shields.io/badge/Raspberry%20Pico-RP2040-c51a4a.svg)](https://www.raspberrypi.com/products/rp2040/)
 
 **IR remote to USB HID keyboard mapper for Raspberry Pi RP2040/RP2350**
@@ -17,14 +17,15 @@ Maps IR remote control signals to USB keyboard commands using CircuitPython. Fea
 - **Learning mode** - Map any IR button to any keyboard key
 - **Persistent storage** - Mappings saved between reboots
 - **Visual feedback** - Status LED and display notifications
+- **Modular hardware support** - Can operate with or without display and rotary encoder
 
 ## Hardware Requirements
 
 | Component | Pin | Description |
 |-----------|-----|-------------|
-| IR Receiver | GP28 | VS1838B or equivalent 38kHz receiver |
-| OLED Display | GP20/GP21 | I2C SSD1306 128x64 pixels |
-| Rotary Encoder | GP12/GP13/GP14 | With integrated push button |
+| IR Receiver | GP28 | VS1838B or equivalent 38kHz receiver (required) |
+| OLED Display | GP20/GP21 | I2C SSD1306 128x64 pixels (optional) |
+| Rotary Encoder | GP12/GP13/GP14 | With integrated push button (optional) |
 | Status LED | GP25 | Visual feedback (optional) |
 
 ## Installation
@@ -50,7 +51,7 @@ Maps IR remote control signals to USB keyboard commands using CircuitPython. Fea
 
 ## Usage
 
-### Navigation
+### Navigation (with display and encoder)
 - **Rotate encoder** - Browse available keys
 - **Short press** - Switch between Media and Keyboard modes
 - **Long press** - Enter learning mode for current key
@@ -83,6 +84,21 @@ Point remote
 Time: 18s
 ```
 
+## Headless Mode Operation
+
+Picomote IR can operate without the display and rotary encoder in "headless mode":
+
+- **IR functionality** remains fully operational
+- **Existing mappings** continue to work normally
+- **LED feedback** provides basic status information
+- **Serial console** shows detailed status messages
+- **No learning mode** available without the rotary encoder
+
+To use headless mode:
+1. Create mappings on a device with display/encoder or manually add mapping files to `/mappings/`
+2. Deploy the device without display/encoder components
+3. IR signals will be processed according to existing mappings
+
 ## Configuration
 
 Edit `settings.json` to customize pin assignments and behavior:
@@ -113,14 +129,19 @@ Edit `settings.json` to customize pin assignments and behavior:
 
 ```
 /
-├── boot.py              # Boot configuration
-├── code.py              # Main entry point
-├── config.py            # Configuration constants
-├── device.py            # Main device logic
-├── ir_manager.py        # IR processing
-├── display_cache.py     # Display management
-├── settings.json        # User configuration
-└── mappings/            # Saved IR mappings
+├── boot.py             # Boot configuration and filesystem setup
+├── code.py             # Main application entry point
+├── config.py           # Configuration constants and settings
+├── device.py           # Hardware device management
+├── display_cache.py    # OLED display and UI management
+├── ir_manager.py       # IR signal processing and mapping
+├── settings.json       # User configuration file
+├── picomote.png        # Project logo
+├── CHANGELOG.md        # Version history and changes
+├── LICENSE             # GNU GPL v3 license
+├── README.md           # Project documentation
+├── lib/                # External libraries
+└── mappings/           # Directory for IR key mappings
 ```
 
 ## Troubleshooting
@@ -133,10 +154,15 @@ Edit `settings.json` to customize pin assignments and behavior:
 **Display issues:**
 - Verify I2C connections (SDA/SCL)
 - Check display address (default 0x3C)
+- If intentionally using headless mode, ignore display-related messages
 
 **USB not recognized:**
 - Restart device
 - Check USB cable and connection
+
+**Serial Console Messages:**
+- Connect to USB serial console to view detailed status messages
+- Device will report which components are available/missing
 
 ## License
 

@@ -1,4 +1,8 @@
-"""Main device logic for Picomote IR"""
+"""Main device logic for Picomote IR
+
+Core implementation of HID mapper device with hardware initialization,
+IR signal handling, and display management.
+"""
 
 import time
 import board
@@ -155,6 +159,8 @@ class HIDMapperDevice:
         
         self.last_usb_check = time.monotonic()
         self.usb_check_interval = 5.0
+        
+        self._log_device_status()
 
     def get_version(self):
         return __version__
@@ -185,10 +191,12 @@ class HIDMapperDevice:
         self.display_is_ready = False
         
         if not HAS_DISPLAY:
+            logger.info("Display", "Display libraries not available - running in headless mode")
             return
 
         display_prefs = settings.get_section("display", {}).get("preferences", {})
         if not display_prefs.get("display_enabled", True):
+            logger.info("Display", "Display disabled in settings - running in headless mode")
             return
 
         i2c_pins = settings.get_section("display", {}).get("pins", {}).get("i2c", {})
@@ -196,6 +204,7 @@ class HIDMapperDevice:
         scl_pin_name = i2c_pins.get("scl")
 
         if not sda_pin_name or not scl_pin_name:
+            logger.info("Display", "I2C pins not configured - running in headless mode")
             return
 
         try:
@@ -215,9 +224,11 @@ class HIDMapperDevice:
             if not self.in_deep_idle_mode:
                 self._update_display(force_update=True)
             
-        except:
+            logger.info("Display", "OLED display initialized successfully")
+        except Exception as e:
             self.display = None
             self.display_group = None
+            logger.info("Display", f"Display hardware not detected - running in headless mode")
 
     def _init_rotary_encoder(self):
         encoder_pins = settings.get_section("display", {}).get("pins", {}).get("rotary_encoder", {})
@@ -226,6 +237,7 @@ class HIDMapperDevice:
         sw_pin_name = encoder_pins.get("sw")
 
         if not all([clk_pin_name, dt_pin_name, sw_pin_name]):
+            logger.info("Encoder", "Rotary encoder pins not configured - navigation disabled")
             return
 
         try:
@@ -248,18 +260,22 @@ class HIDMapperDevice:
                 debounce_delay=timing_prefs.get("debounce_time", 0.05),
                 long_press_delay=timing_prefs.get("long_press_delay", 1.5)
             )
-        except:
+            logger.info("Encoder", "Rotary encoder initialized successfully")
+        except Exception as e:
             self.encoder = None
             self.encoder_button = None
+            logger.info("Encoder", "Rotary encoder hardware not detected - navigation disabled")
 
     def _init_ir_receiver(self):
         if not HAS_IRREMOTE:
+             logger.warning("IR", "IR remote libraries not available - IR functionality disabled")
              return
 
         ir_pins = settings.get_section("display", {}).get("pins", {})
         pin_name = ir_pins.get("ir_receiver")
 
         if not pin_name:
+            logger.warning("IR", "IR receiver pin not configured - IR functionality disabled")
             return
 
         try:
@@ -270,10 +286,12 @@ class HIDMapperDevice:
             self.pulsein.clear()
             self.decoder = adafruit_irremote.GenericDecode()
             self.ir_manager = IRManager(self.pulsein, self.decoder)
-        except:
+            logger.info("IR", f"IR receiver initialized successfully on pin {pin_name}")
+        except Exception as e:
             self.pulsein = None
             self.decoder = None
             self.ir_manager = None
+            logger.warning("IR", f"Failed to initialize IR receiver - IR functionality disabled")
 
     def _init_hid(self):
         if not self.usb_connected or not HAS_HID:
@@ -1004,4 +1022,24 @@ class HIDMapperDevice:
                     
             return True
         except:
-            return False 
+            return False
+
+    def _log_device_status(self):
+        logger.info("Status", f"Picomote IR v{__version__} initialized")
+        
+        components = [
+            ("Display", self.display is not None, "available" if self.display else "not available"),
+            ("Encoder", self.encoder is not None, "available" if self.encoder else "not available"),
+            ("IR Receiver", self.ir_manager is not None, "active" if self.ir_manager else "inactive"),
+            ("LED", self.led is not None, "enabled" if self.led else "disabled"),
+            ("USB HID", self.keyboard is not None, "connected" if self.keyboard else "not connected")
+        ]
+        
+        for name, status, status_text in components:
+            logger.info("Status", f"{name}: {status_text}")
+        
+        mapping_count = len(self.ir_mappings)
+        logger.info("Status", f"Loaded {mapping_count} IR mappings")
+        
+        mode = "Deep Idle" if self.in_deep_idle_mode else "Normal"
+        logger.info("Status", f"Starting in {mode} mode") 
