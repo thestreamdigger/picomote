@@ -23,7 +23,6 @@ from config import (
 )
 
 from ir_manager import IRManager
-from display_cache import DisplayCache
 
 try:
     import adafruit_irremote
@@ -97,13 +96,11 @@ class HIDMapperDevice:
         self.decoder = None
         self.keyboard = None
         self.consumer_control = None
-        
+
         self.ir_manager = None
-        self.display_cache = DisplayCache(max_cache_size=5)
-        
+
         self._display_needs_update = True
         self._display_count = 0
-        self._display_dirty = False
 
         self.temp_display_status = None
         self.temp_display_info = None
@@ -154,16 +151,10 @@ class HIDMapperDevice:
         if start_in_deep_idle and self.display:
                 self._update_deep_idle_display()
         elif self.display:
-            self._set_temp_display(f"Picomote IR v{__version__}", 
+            self._set_temp_display(f"Picomote IR v{__version__}",
                                  f"USB: {'Connected' if self.usb_connected else 'Not Connected'}", 3.0)
-        
-        self.last_usb_check = time.monotonic()
-        self.usb_check_interval = 5.0
-        
-        self._log_device_status()
 
-    def get_version(self):
-        return __version__
+        self._log_device_status()
 
     def check_usb_status(self):
         try:
@@ -363,11 +354,7 @@ class HIDMapperDevice:
     def update(self):
         ir_detected = self.handle_ir_signal()
         current_time = time.monotonic()
-        
-        if hasattr(self, '_last_ir_time') and (current_time - self._last_ir_time) < 0.05:
-            time.sleep(0.005)
-            return
-        
+
         self._display_count += 1
         
         if self.temp_display_expiry > 0 and current_time >= self.temp_display_expiry:
@@ -387,12 +374,6 @@ class HIDMapperDevice:
             
         if self._display_count % 500 == 0:
             self.check_usb_status()
-            
-        if (not hasattr(self, 'current_display_checked') or not self.current_display_checked) and \
-           ALL_KEYS_FOR_MAPPING and len(ALL_KEYS_FOR_MAPPING) > 0 and \
-           not self.in_deep_idle_mode:
-            self._update_display(force_update=True)
-            self.current_display_checked = True
 
         if self.in_learning_mode:
             self.process_learning_mode()
@@ -561,7 +542,6 @@ class HIDMapperDevice:
             self.current_key_index = (self.current_key_index + delta) % total_keys
             self.last_encoder_position = position
             self._display_needs_update = True
-            self._display_dirty = True
             self._update_display()
         
     def handle_ir_signal(self):
@@ -713,7 +693,7 @@ class HIDMapperDevice:
 
     def _update_display(self, force_update=False, status=None, info=None):
         try:
-            if not self.display or not hasattr(self, 'display_is_ready') or not self.display_is_ready:
+            if not self.display or not self.display_is_ready:
                 return
                 
             if (self.in_idle_mode or self.in_deep_idle_mode) and not force_update:
@@ -726,8 +706,8 @@ class HIDMapperDevice:
                 self.temp_display_expiry = 0.0
                 self._display_needs_update = True
                 force_update = True
-            
-            needs_update = force_update or self._display_needs_update or self._display_dirty or (self._display_count % 50 == 0)
+
+            needs_update = force_update or self._display_needs_update or (self._display_count % 50 == 0)
             if not needs_update:
                 return
             
@@ -799,8 +779,7 @@ class HIDMapperDevice:
             
             self.display.root_group = temp_group
             self._display_needs_update = False
-            self._display_dirty = False
-            
+
         except Exception as e:
             try:
                 error_group = displayio.Group()
@@ -821,11 +800,6 @@ class HIDMapperDevice:
 
         led_state_on = turn_on if not self.led_inverted else not turn_on
         led_state_off = not led_state_on
-
-        if duration is None:
-            if self.led.value != led_state_on:
-                self.led.value = led_state_on
-            return
 
         if self.led.value != led_state_off:
             self.led.value = led_state_off
@@ -970,12 +944,7 @@ class HIDMapperDevice:
                 return False
             
             self.ir_mappings[ir_code] = key_name.lower()
-            
-            if self.ir_manager and len(self.ir_manager.mapping_cache) < self.ir_manager.max_cache_size:
-                    self.ir_manager.mapping_cache[ir_code] = key_name.lower()
-                    self.ir_manager.cache_usage_count[ir_code] = 0
-                    self.ir_manager.cache_access_time[ir_code] = time.monotonic()
-            
+
             self._display_needs_update = True
             self._set_temp_display("Saved", f"{key_name}", 1.0)
             

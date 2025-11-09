@@ -7,7 +7,7 @@ Provides:
 4. Settings management with defaults and JSON file loading
 """
 
-__version__ = "1.0.0"
+__version__ = "1.0.1"
 
 import json
 import board
@@ -198,8 +198,6 @@ class Logger:
         if error and "error" not in kwargs:
             kwargs["error"] = str(error)
         self._log("ERROR", module, message, **kwargs)
-
-logger = Logger(enabled=True, level="DEBUG")
 
 class Settings:
     def __init__(self):
