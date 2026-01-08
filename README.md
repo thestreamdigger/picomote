@@ -1,9 +1,10 @@
 # Picomote IR v1.0.1
 
-[![CircuitPython 7.x+](https://img.shields.io/badge/CircuitPython-7.x%2B-purple.svg)](https://circuitpython.org)
-[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
-[![Version](https://img.shields.io/badge/version-v1.0.1-brightgreen.svg)](CHANGELOG.md)
-[![RP2040](https://img.shields.io/badge/Raspberry%20Pico-RP2040-c51a4a.svg)](https://www.raspberrypi.com/products/rp2040/)
+[![Version](https://img.shields.io/badge/version-1.0.1-blue.svg)](https://github.com/thestreamdigger/picomote)
+[![License](https://img.shields.io/badge/license-GPL%20v3-green.svg)](LICENSE)
+[![CircuitPython](https://img.shields.io/badge/CircuitPython-7.x%2B-blue.svg)](https://circuitpython.org)
+[![Status](https://img.shields.io/badge/status-stable-brightgreen.svg)]()
+[![Raspberry Pi Pico](https://img.shields.io/badge/platform-Raspberry%20Pi%20Pico-C51A4A.svg)](https://www.raspberrypi.com/products/rp2040/)
 
 **IR remote to USB HID keyboard mapper for Raspberry Pi RP2040/RP2350**
 
