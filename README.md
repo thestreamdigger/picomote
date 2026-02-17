@@ -1,10 +1,10 @@
-# Picomote IR v1.0.1
+# Picomote IR v1.1.0
 
-[![Version](https://img.shields.io/badge/version-1.0.1-blue.svg)](https://github.com/thestreamdigger/picomote)
-[![License](https://img.shields.io/badge/license-GPL%20v3-green.svg)](LICENSE)
-[![CircuitPython](https://img.shields.io/badge/CircuitPython-7.x%2B-blue.svg)](https://circuitpython.org)
-[![Status](https://img.shields.io/badge/status-stable-brightgreen.svg)]()
-[![Raspberry Pi Pico](https://img.shields.io/badge/platform-Raspberry%20Pi%20Pico-C51A4A.svg)](https://www.raspberrypi.com/products/rp2040/)
+[![Version](https://img.shields.io/badge/version-1.1.0-blue?style=flat-square)](https://github.com/thestreamdigger/picomote)
+[![License](https://img.shields.io/badge/license-GPL%20v3-green?style=flat-square)](LICENSE)
+[![CircuitPython](https://img.shields.io/badge/CircuitPython-9.x-blue?style=flat-square)](https://circuitpython.org)
+[![Status](https://img.shields.io/badge/status-stable-brightgreen?style=flat-square)]()
+[![Raspberry Pi Pico](https://img.shields.io/badge/platform-Raspberry%20Pi%20Pico-C51A4A?style=flat-square)](https://www.raspberrypi.com/products/rp2040/)
 
 **IR remote to USB HID keyboard mapper for Raspberry Pi RP2040/RP2350**
 
@@ -18,6 +18,9 @@ Maps IR remote control signals to USB keyboard commands using CircuitPython. Fea
 - **Learning mode** - Map any IR button to any keyboard key
 - **Persistent storage** - Mappings saved between reboots
 - **Visual feedback** - Status LED and display notifications
+- **Idle modes** - Progressive power-saving (idle → deep idle) with configurable timeouts
+- **LRU mapping cache** - Fast IR code lookup with intelligent caching
+- **USB monitoring** - Automatic detection and status display
 - **Modular hardware support** - Can operate with or without display and rotary encoder
 
 ## Hardware Requirements
@@ -31,13 +34,14 @@ Maps IR remote control signals to USB keyboard commands using CircuitPython. Fea
 
 ## Installation
 
-1. **Install CircuitPython 7.x+** on your RP2040/RP2350
+1. **Install CircuitPython 9.x** on your RP2040/RP2350
 2. **Copy libraries** to `/lib/` folder:
    ```
    adafruit_hid/
    adafruit_irremote.mpy
    adafruit_display_text/
    adafruit_displayio_ssd1306.mpy
+   adafruit_bus_device/
    ```
 3. **Copy project files** to root directory:
    ```
@@ -84,6 +88,16 @@ Point remote
 Time: 18s
 ```
 
+### Idle Modes
+
+Device progressively reduces display activity to save power:
+
+1. **Normal** - Full display with key navigation
+2. **Idle** - Shows USB status, mapping count, and countdown to deep idle
+3. **Deep idle** - Minimal animation (`++++` / `****`), lower CPU usage
+
+Any encoder interaction wakes the display. IR signals are processed in all modes.
+
 ## Headless Mode Operation
 
 Picomote IR can operate without the display and rotary encoder in "headless mode":
@@ -109,21 +123,69 @@ Edit `settings.json` to customize pin assignments and behavior:
         "pins": {
             "ir_receiver": "GP28",
             "rotary_encoder": {
-                "clk": "GP13", "dt": "GP12", "sw": "GP14"
+                "clk": "GP13",
+                "dt": "GP12",
+                "sw": "GP14"
             },
-            "i2c": {"sda": "GP20", "scl": "GP21"}
+            "i2c": {
+                "sda": "GP20",
+                "scl": "GP21"
+            }
         },
         "preferences": {
             "display_enabled": true,
-            "idle_timeout": 5,
-            "deep_idle_timeout": 15
+            "display_address": 60,
+            "pin_pull_up": true,
+            "display_rotation": 0,
+            "idle_mode_enabled": true,
+            "idle_timeout": 10,
+            "idle_display_enabled": true,
+            "idle_display_inverted": true,
+            "deep_idle_enabled": true,
+            "deep_idle_timeout": 20,
+            "deep_idle_display_enabled": true,
+            "start_in_deep_idle": true
         }
     },
     "status_leds": {
-        "main_led": {"pin": "GP25", "is_inverted": false}
+        "main_led": {
+            "pin": "GP25",
+            "is_inverted": false
+        }
+    },
+    "hid_mapper": {
+        "timing": {
+            "feedback_duration": 0.05,
+            "led_blink_count": 1,
+            "debounce_time": 0.05,
+            "long_press_delay": 1.5,
+            "ir_timeout": 20000,
+            "save_timeout": 30,
+            "reboot_delay": 5,
+            "temp_message_duration": 1.0
+        },
+        "logging": {
+            "default_log_level": "INFO"
+        }
+    },
+    "ir_receiver": {
+        "maxlen": 200,
+        "idle_state": true
     }
 }
 ```
+
+### Configuration Reference
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| `display_rotation` | `0` | Display rotation in degrees (0, 90, 180, 270) |
+| `idle_timeout` | `10` | Seconds before entering idle mode |
+| `deep_idle_timeout` | `20` | Seconds in idle before entering deep idle |
+| `start_in_deep_idle` | `true` | Start device directly in deep idle mode |
+| `idle_display_inverted` | `true` | Invert display colors in idle mode |
+| `ir_timeout` | `20000` | Learning mode timeout in milliseconds |
+| `debounce_time` | `0.05` | Button debounce delay in seconds |
 
 ## File Structure
 
@@ -170,4 +232,4 @@ GNU General Public License v3.0 - see [LICENSE](LICENSE) file for details.
 ## Acknowledgments
 
 - CircuitPython and Adafruit teams for excellent libraries
-- RP2040/RP2350 community for support and resources 
+- RP2040/RP2350 community for support and resources
